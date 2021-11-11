@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module HazardDetection(PCWrite, IF_ID_Write, ControlMux, 
+module HazardDetectionUnit(PCWrite, IF_ID_Write, ControlMux, 
                         ID_EX_MemRead, ID_EX_RegWrite, ID_EX_MemWrite, ID_EX_Shift, EX_MEM_MemRead, EX_MEM_RegWrite, EX_MEM_MemWrite, EX_MEM_Shift, 
                         IF_ID_Rt, IF_ID_Rs, ID_EX_Rt, ID_EX_Rd, /*EX_MEM.Rt,*/ EX_MEM_Rd); // at MEM stage, Rt and Rd joins, so we only need Rd to represent both
     input ID_EX_MemRead, ID_EX_RegWrite, ID_EX_MemWrite, ID_EX_Shift, EX_MEM_MemRead, EX_MEM_RegWrite, EX_MEM_MemWrite, EX_MEM_Shift;
