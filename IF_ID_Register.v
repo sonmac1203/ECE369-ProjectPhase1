@@ -8,9 +8,9 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 module IF_ID_Register(Clk, InInstruction, OutInstruction, InPCAddResult, OutPCAddResult,
-                      IF_ID.Write); // Added for Hazard Detection
+                      IF_ID_Write); // Added for Hazard Detection
     
-    input IF_ID.Write;
+    input IF_ID_Write;
     input Clk;
     input [31:0] InInstruction, InPCAddResult;
 
@@ -22,7 +22,7 @@ module IF_ID_Register(Clk, InInstruction, OutInstruction, InPCAddResult, OutPCAd
     end
 
     always @(posedge Clk) begin
-        if (IF_ID.Write == 1) begin
+        if (IF_ID_Write == 1) begin
             OutInstruction <= InInstruction;
             OutPCAddResult <= InPCAddResult;
         end

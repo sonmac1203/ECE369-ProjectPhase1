@@ -22,7 +22,7 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT, AddResultToIFID);
     wire [31:0] IFIDToIDEX; // Adder from IF/ID to ID/EX
 
     // Going into and going out of Hazard Detection
-    wire PCWrite, IF_ID.Write, ControlMux; // Going out
+    wire PCWrite, IF_ID_Write, ControlMux; // Going out
 
     // Going into and going out of Registers
     wire [4:0] WriteRegisterToRegisters; // WriteRegister going into Registers
@@ -167,27 +167,27 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT, AddResultToIFID);
         .OutInstruction(InstructionFromIFID),
         .InPCAddResult(AddResultToIFIDWire),
         .OutPCAddResult(IFIDToIDEX),
-        .IF_ID.Write(IF_ID.Write) // Added for HazardDetection
+        .IF_ID_Write(IF_ID_Write) // Added for HazardDetection
     );
 
     HazardDetectionUnit HazardDetection( // HazardDetection added
         .PCWrite(PCWrite), 
-        .IF_ID.Write(IF_ID.Write), 
+        .IF_ID_Write(IF_ID_Write), 
         .ControlMux(ControlMux), 
-        .ID_EX.MemRead(MemReadFromIDEX), 
-        .ID_EX.RegWrite(RegWriteFromIDEX), 
-        .ID_EX.MemWrite(MemWriteFromIDEX), 
-        .ID_EX.Shift(shiftFromIDEX), 
-        .EX_MEM.MemRead(MemReadFromEXMEM), 
-        .EX_MEM.RegWrite(RegWriteFromEXMEM), 
-        .EX_MEM.MemWrite(MemWriteFromEXMEM), 
-        .EX_MEM.Shift(shiftFromEXMEM), 
-        .IF_ID.Rt(InstructionFromIFID[20:16]), 
-        .IF_ID.Rs(InstructionFromIFID[25:21]), 
-        .ID_EX.Rt(RtFromIDEX), 
-        .ID_EX.Rd(RdFromIDEX), 
+        .ID_EX_MemRead(MemReadFromIDEX), 
+        .ID_EX_RegWrite(RegWriteFromIDEX), 
+        .ID_EX_MemWrite(MemWriteFromIDEX), 
+        .ID_EX_Shift(shiftFromIDEX), 
+        .EX_MEM_MemRead(MemReadFromEXMEM), 
+        .EX_MEM_RegWrite(RegWriteFromEXMEM), 
+        .EX_MEM_MemWrite(MemWriteFromEXMEM), 
+        .EX_MEM_Shift(shiftFromEXMEM), 
+        .IF_ID_Rt(InstructionFromIFID[20:16]), 
+        .IF_ID_Rs(InstructionFromIFID[25:21]), 
+        .ID_EX_Rt(RtFromIDEX), 
+        .ID_EX_Rd(RdFromIDEX), 
         /*.EX_MEM.Rt(),*/ 
-        .EX_MEM.Rd(WriteRegisterFromEXMEM)
+        .EX_MEM_Rd(WriteRegisterFromEXMEM)
     );
 
     RegisterFile Registers(
