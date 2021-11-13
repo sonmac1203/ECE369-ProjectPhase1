@@ -184,8 +184,8 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT, AddResultToIFID);
         .EX_MEM_Shift(shiftFromEXMEM), 
         .IF_ID_Rt(InstructionFromIFID[20:16]), 
         .IF_ID_Rs(InstructionFromIFID[25:21]), 
-        .ID_EX_Rt(RtFromIDEX), 
-        .ID_EX_Rd(RdFromIDEX), 
+        /*.ID_EX_Rt(RtFromIDEX),*/ 
+        .ID_EX_Rd(OutMuxRtOrRd), 
         /*.EX_MEM.Rt(),*/ 
         .EX_MEM_Rd(WriteRegisterFromEXMEM)
     );
