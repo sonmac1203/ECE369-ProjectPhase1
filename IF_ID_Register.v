@@ -8,9 +8,10 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 module IF_ID_Register(Clk, InInstruction, OutInstruction, InPCAddResult, OutPCAddResult,
-                      IF_ID_Write); // Added for Hazard Detection
+                      IF_ID_Write, Flush); // Added for Hazard Detection
     
     input IF_ID_Write;
+    input Flush;
     input Clk;
     input [31:0] InInstruction, InPCAddResult;
 
@@ -23,9 +24,13 @@ module IF_ID_Register(Clk, InInstruction, OutInstruction, InPCAddResult, OutPCAd
 
     always @(posedge Clk) begin
         if (IF_ID_Write == 1) begin
-            OutInstruction <= InInstruction;
+            if (Flush == 1) begin
+                OutInstruction <= 32'd0; // If Flush is high, send a NOP
+            end
+            else begin
+                OutInstruction <= InInstruction;
+            end
             OutPCAddResult <= InPCAddResult;
         end
     end
 endmodule
-
