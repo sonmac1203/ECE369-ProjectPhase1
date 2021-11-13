@@ -5,12 +5,12 @@
 // Members:             Son Mac | Ali Alaqeel | Efrain Torres
 // Percentage Effort:   50%       35%           15%
 //////////////////////////////////////////////////////////////
-module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT, AddResultToIFID);
+module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
    
    
     input Clk, Rst;
 
-    output [31:0] WriteData, HiOUT, LoOUT, PCValue, AddResultToIFID;
+    output [31:0] WriteData, HiOUT, LoOUT, PCValue;
     wire [31:0] WriteDataWire, HiOUTWire, LoOUTWire, PCValueWire;
 
     wire [31:0] InProgramCounter;
@@ -103,7 +103,7 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT, AddResultToIFID);
 
     // Going out of AND gate
     wire PCSrc;
-    assign PCSrc = 0;
+    //assign PCSrc = 0;
 
     // Going out of Data Memory
     wire [31:0] ReadDataFromDM;
@@ -119,27 +119,29 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT, AddResultToIFID);
     wire [31:0] OutMuxJorJr;
     
     Mux32Bit2To1 muxImmOrNormalToPC(
-        .out(OutMuxImmOrNormalToPC),
-        //.out(InProgramCounter),
-        .inA(AddResultToIFID),
-        .inB(JumpDestFromEXMEM),
-        .sel(PCSrc)
+        //.out(OutMuxImmOrNormalToPC),
+        .out(InProgramCounter),
+        .inA(AddResultToIFIDWire),
+        .inB(AddResultAddedWithImmFromAdder),
+        //.sel(PCSrc)
+        .sel(ZeroFromBranchJump & branchFromController)
         //.sel(0)
     );
     
-    Mux32Bit2To1 muxJumpOrNotJump(
-        .out(InProgramCounter),
-        .inA(OutMuxImmOrNormalToPC),
-        .inB(OutMuxJorJr),
-        .sel(jrSrcFromIDEX)
-    );
+    
+//    Mux32Bit2To1 muxJumpOrNotJump(
+//        .out(InProgramCounter),
+//        .inA(OutMuxImmOrNormalToPC),
+//        .inB(OutMuxJorJr),
+//        .sel(jrSrcFromIDEX)
+//    );
 
-    Mux32Bit2To1 muxJorJr(
-        .out(OutMuxJorJr),
-        .inA(ReadData1FromIDEX),
-        .inB(JDestFromEXMEM),
-        .sel(jSrcFromEXMEM)
-    );
+//    Mux32Bit2To1 muxJorJr(
+//        .out(OutMuxJorJr),
+//        .inA(ReadData1FromIDEX),
+//        .inB(JDestFromEXMEM),
+//        .sel(jSrcFromEXMEM)
+//    );
     
     ProgramCounter PC(
         .Address(InProgramCounter),
@@ -159,7 +161,7 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT, AddResultToIFID);
         .PCResult(PCValueWire),
         .PCAddResult(AddResultToIFIDWire)
     );
-    assign AddResultToIFID = AddResultToIFIDWire;
+    //assign AddResultToIFID = AddResultToIFIDWire;
 
     IF_ID_Register IFID(
         .Clk(Clk),
@@ -167,7 +169,8 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT, AddResultToIFID);
         .OutInstruction(InstructionFromIFID),
         .InPCAddResult(AddResultToIFIDWire),
         .OutPCAddResult(IFIDToIDEX),
-        .IF_ID_Write(IF_ID_Write) // Added for HazardDetection
+        .IF_ID_Write(IF_ID_Write), // Added for HazardDetection
+        .Flush(ZeroFromBranchJump & branchFromController)
     );
 
     HazardDetectionUnit HazardDetection( // HazardDetection added
@@ -218,6 +221,20 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT, AddResultToIFID);
         .in(InstructionFromIFID[15:0]),
         .out(OutSignExtension)
     );
+    
+    // OutSignExtension has to go to shift left 2 to calculate destination
+    ShiftLeft2_32Bit shiftleft2_32_Imm(
+        .in(OutSignExtension),
+        .out(ImmShiftedLeft)
+    );
+
+    // Shifted left Imm goes into adder
+    Adder adder(
+        .A(IFIDToIDEX), // Add result from IF/ID
+        .B(ImmShiftedLeft),
+        .out(AddResultAddedWithImmFromAdder)
+    );
+
 
     ZeroExtension ZeroExt(
         .in(InstructionFromIFID[10:6]),
@@ -313,16 +330,16 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT, AddResultToIFID);
         .out(Instruction25To0Shifted2)
     );
 
-    ShiftLeft2_32Bit shiftleft2_32_Imm(
-        .in(OutSignExtensionFromIDEX),
-        .out(ImmShiftedLeft)
-    );
+//    ShiftLeft2_32Bit shiftleft2_32_Imm(
+//        .in(OutSignExtensionFromIDEX),
+//        .out(ImmShiftedLeft)
+//    );
 
-    Adder adder(
-        .A(AddResultFromIDEX),
-        .B(ImmShiftedLeft),
-        .out(AddResultAddedWithImmFromAdder)
-    );
+//    Adder adder(
+//        .A(AddResultFromIDEX),
+//        .B(ImmShiftedLeft),
+//        .out(AddResultAddedWithImmFromAdder)
+//    );
 
     Mux32Bit2To1 muxShift(
         .out(ReadDataFromShiftMux), 
@@ -438,28 +455,3 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT, AddResultToIFID);
     assign LoOUT = LoOUTWire;
     assign WriteData = WriteDataWire;
 endmodule
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-    
-
-
-
-
-
-
-
-    
