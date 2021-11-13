@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////
 module Top_tb();
     reg Clk, Rst;
-    wire [31:0] WriteData, HiOUT, LoOUT, PCValue, AddResultToIFID;
+    wire [31:0] WriteData, HiOUT, LoOUT, PCValue;
 
     Top test(
         .Clk(Clk), 
@@ -15,8 +15,7 @@ module Top_tb();
         .WriteData(WriteData), 
         .PCValue(PCValue), 
         .HiOUT(HiOUT), 
-        .LoOUT(LoOUT),
-        .AddResultToIFID(AddResultToIFID)
+        .LoOUT(LoOUT)
     );
 
     initial begin
@@ -29,4 +28,3 @@ module Top_tb();
         forever #100 Clk <= ~Clk;
     end
 endmodule
-
