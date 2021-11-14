@@ -7,7 +7,6 @@
 //////////////////////////////////////////////////////////////
 module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
    
-   
     input Clk, Rst;
 
     output [31:0] WriteData, HiOUT, LoOUT, PCValue;
@@ -31,6 +30,9 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
 
     // Going into and going out of Branch_Jump_Unit
     wire ZeroFromBranchJump;
+    
+    // Going out of JumpDecision
+    wire jump;
 
     // Going out of Sign-extend
     wire [31:0] OutSignExtension;
@@ -46,6 +48,7 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
     wire branchFromController, shiftFromController, jrSrcFromController, jSrcFromController;
     wire [5:0] ALUOpFromController;
     wire [1:0] halfFromController;
+    wire ZeroExtendFromController;
 
     // Going out of Controller Register
     wire ALUSrcFromControllerReg, RegDstFromControllerReg, RegWriteFromControllerReg, MemReadFromControllerReg, MemWriteFromControllerReg, MemToRegFromControllerReg;
@@ -63,7 +66,8 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
     wire [1:0] halfFromIDEX;
     wire [4:0] Instruction10To6FromIDEX;
     wire [25:0] Instruction25To0FromIDEX;
-    assign jrSrcFromIDEX = 0;
+    wire jumpFromIDEX;
+    //assign jrSrcFromIDEX = 0;
     
     //assign mux1Test = AddResultToIFID;
 
@@ -98,7 +102,8 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
     wire [1:0] halfFromEXMEM;
     wire [31:0] ALUResultFromEXMEM, JumpDestFromEXMEM, ReadData2FromEXMEM, JDestFromEXMEM;
     wire [4:0] WriteRegisterFromEXMEM;
-    assign jSrcFromEXMEM = 0;
+    wire jumpFromEXMEM;
+    //assign jSrcFromEXMEM = 0;
 
 
     // Going out of AND gate
@@ -119,8 +124,8 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
     wire [31:0] OutMuxJorJr;
     
     Mux32Bit2To1 muxImmOrNormalToPC(
-        //.out(OutMuxImmOrNormalToPC),
-        .out(InProgramCounter),
+        .out(OutMuxImmOrNormalToPC),
+        //.out(InProgramCounter),
         .inA(AddResultToIFIDWire),
         .inB(AddResultAddedWithImmFromAdder),
         //.sel(PCSrc)
@@ -129,19 +134,24 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
     );
     
     
-//    Mux32Bit2To1 muxJumpOrNotJump(
-//        .out(InProgramCounter),
-//        .inA(OutMuxImmOrNormalToPC),
-//        .inB(OutMuxJorJr),
-//        .sel(jrSrcFromIDEX)
-//    );
+    Mux32Bit2To1 muxJumpOrNotJump(
+        .out(InProgramCounter),
+        .inA(OutMuxImmOrNormalToPC),
+        .inB(OutMuxJorJr),
+        //.sel(jrSrcFromIDEX) // FIX THISSS
+        .sel(jrSrcFromController)
+    );
 
-//    Mux32Bit2To1 muxJorJr(
-//        .out(OutMuxJorJr),
-//        .inA(ReadData1FromIDEX),
-//        .inB(JDestFromEXMEM),
-//        .sel(jSrcFromEXMEM)
-//    );
+    
+    Mux32Bit2To1 muxJorJr(
+        .out(OutMuxJorJr),
+        .inA(ReadData1FromRegisters), // JR
+        .inB({IFIDToIDEX[31:28], Instruction25To0Shifted2}), // J OR JA;
+        //.inB({Instruction25To0Shifted2,IFIDToIDEX[31:28]}), // J OR JA;
+        //.sel(jSrcFromEXMEM) // fIX THISS
+        .sel(jSrcFromController)
+    );
+
     
     ProgramCounter PC(
         .Address(InProgramCounter),
@@ -170,26 +180,29 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
         .InPCAddResult(AddResultToIFIDWire),
         .OutPCAddResult(IFIDToIDEX),
         .IF_ID_Write(IF_ID_Write), // Added for HazardDetection
-        .Flush(ZeroFromBranchJump & branchFromController)
+        .Flush(ZeroFromBranchJump & branchFromController),
+        .Jump(jump)
     );
 
     HazardDetectionUnit HazardDetection( // HazardDetection added
         .PCWrite(PCWrite), 
         .IF_ID_Write(IF_ID_Write), 
-        .ControlMux(ControlMux), 
+        .ControlMux(ControlMux),
+        .IF_ID_MemWrite(MemWriteFromController), 
         .ID_EX_MemRead(MemReadFromIDEX), 
         .ID_EX_RegWrite(RegWriteFromIDEX), 
         .ID_EX_MemWrite(MemWriteFromIDEX), 
-        .ID_EX_Shift(shiftFromIDEX), 
+        .ID_EX_Shift(shiftFromIDEX),
+        .ID_EX_Jump(jumpFromIDEX), 
         .EX_MEM_MemRead(MemReadFromEXMEM), 
         .EX_MEM_RegWrite(RegWriteFromEXMEM), 
         .EX_MEM_MemWrite(MemWriteFromEXMEM), 
-        .EX_MEM_Shift(shiftFromEXMEM), 
+        .EX_MEM_Shift(shiftFromEXMEM),
+        .EX_MEM_Jump(jumpFromEXMEM), 
         .IF_ID_Rt(InstructionFromIFID[20:16]), 
-        .IF_ID_Rs(InstructionFromIFID[25:21]), 
-        /*.ID_EX_Rt(RtFromIDEX),*/ 
+        .IF_ID_Rs(InstructionFromIFID[25:21]),
+        .IF_ID_Rd(InstructionFromIFID[15:11]), 
         .ID_EX_Rd(OutMuxRtOrRd), 
-        /*.EX_MEM.Rt(),*/ 
         .EX_MEM_Rd(WriteRegisterFromEXMEM)
     );
 
@@ -210,6 +223,12 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
         .B(ReadData2FromRegisters), // R[Rt]
         .Zero(ZeroFromBranchJump)
     );
+    
+    JumpDecision jumpornot(
+        .Instruction(InstructionFromIFID), 
+        .jump(jump)
+    );
+    
 
     ANDGate andGate(
         .A(branchFromController),
@@ -219,7 +238,8 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
 
     SignExtension SignExt(
         .in(InstructionFromIFID[15:0]),
-        .out(OutSignExtension)
+        .out(OutSignExtension),
+        .ZeroExtend(ZeroExtendFromController)
     );
     
     // OutSignExtension has to go to shift left 2 to calculate destination
@@ -233,6 +253,11 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
         .A(IFIDToIDEX), // Add result from IF/ID
         .B(ImmShiftedLeft),
         .out(AddResultAddedWithImmFromAdder)
+    );
+    
+    ShiftLeft2_26Bit shiftleft2_26(
+        .in(InstructionFromIFID[25:0]),
+        .out(Instruction25To0Shifted2)
     );
 
 
@@ -254,8 +279,8 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
         .half(halfFromController),
         .shift(shiftFromController),
         .jrSrc(jrSrcFromController),
-        .jSrc(jSrcFromController)
-        //.PCSrc(PCSrc)
+        .jSrc(jSrcFromController),
+        .ZeroExtend(ZeroExtendFromController)
     );
 
     ControllerRegister ControllerReg(
@@ -303,9 +328,11 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
         .OutPCAddResult(AddResultFromIDEX),
         //.InInstruction25To0(OutSignExtension26),
         .InInstruction25To0(InstructionFromIFID[25:0]), 
-        .OutInstruction25To0(Instruction25To0FromIDEX),
+        .OutInstruction25To0(Instruction25To0FromIDEX), // FIX THISSSS
         .InZeroExtension(OutZeroExtension), 
         .OutZeroExtension(OutZeroExtensionFromIDEX),
+        .InJump(jump), 
+        .OutJump(jumpFromIDEX),
         .OutReadData1(ReadData1FromIDEX),
         .OutReadData2(ReadData2FromIDEX), 
         .OutImmExtended(OutSignExtensionFromIDEX), 
@@ -325,10 +352,10 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
         .OutJSrc(jSrcFromIDEX)
     );
 
-    ShiftLeft2_26Bit shiftleft2_26(
-        .in(Instruction25To0FromIDEX),
-        .out(Instruction25To0Shifted2)
-    );
+//    ShiftLeft2_26Bit shiftleft2_26(
+//        .in(Instruction25To0FromIDEX),
+//        .out(Instruction25To0Shifted2)
+//    );
 
 //    ShiftLeft2_32Bit shiftleft2_32_Imm(
 //        .in(OutSignExtensionFromIDEX),
@@ -411,7 +438,9 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
         .InRegDstMux(OutMuxRtOrRd), 
         .OutRegDstMux(WriteRegisterFromEXMEM),
         .InShift(shiftFromIDEX), // Added for hazard detection
-        .OutShift(shiftFromEXMEM) // Added for hazard detection
+        .OutShift(shiftFromEXMEM), // Added for hazard detection
+        .InJump(jumpFromIDEX),
+        .OutJump(jumpFromEXMEM)
     );
 
     // ANDGate andGate(
@@ -455,3 +484,28 @@ module Top(Clk, Rst, WriteData, PCValue, HiOUT, LoOUT);
     assign LoOUT = LoOUTWire;
     assign WriteData = WriteDataWire;
 endmodule
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+    
+
+
+
+
+
+
+
+    
