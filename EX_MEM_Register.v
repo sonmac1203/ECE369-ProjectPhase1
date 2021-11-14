@@ -15,17 +15,20 @@ module EX_MEM_Register(Clk,
                        InZero, OutZero, InALUResult, OutALUResult, // ALU outputs
                        InReadData2, OutReadData2,
                        InRegDstMux, OutRegDstMux,
-                       InShift, OutShift); // Added for hazard detection
+                       InShift, OutShift,
+                       InJump, OutJump); // Added for hazard detection
 
     input Clk, InRegWrite, InBranch, InMemWrite, InMemRead, InMemToReg, InZero, InJSrc, InShift;
     input [1:0] InHalf;
     input [4:0] InRegDstMux;
     input [31:0] InReadData2, InALUResult, InJumpDest, InJDest;
+    input InJump;
 
     output reg OutRegWrite, OutBranch, OutMemWrite, OutMemRead, OutMemToReg, OutZero, OutJSrc, OutShift;
     output reg [1:0] OutHalf;
     output reg [4:0] OutRegDstMux;
     output reg [31:0] OutReadData2, OutALUResult, OutJumpDest, OutJDest;
+    output reg OutJump;
 
     initial begin
         OutRegWrite <= 0;
@@ -41,6 +44,7 @@ module EX_MEM_Register(Clk,
         OutJumpDest <= 0;
         OutJDest <= 0;
         OutShift <= 0;
+        OutJump <= 0;
     end
 
     always @(posedge Clk) begin
@@ -57,6 +61,7 @@ module EX_MEM_Register(Clk,
         OutJumpDest <= InJumpDest;
         OutJDest <= InJDest;
         OutShift <= InShift;
+        OutJump <= InJump;
         
     end
 endmodule
