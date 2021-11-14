@@ -13,6 +13,7 @@ module ID_EX_Register(Clk, InReadData1, InReadData2, InImmExtended, InRt, InRd,
                       InPCAddResult, OutPCAddResult,
                       InInstruction25To0, OutInstruction25To0,
                       InZeroExtension, OutZeroExtension,
+                      InJump, OutJump,
                       OutReadData1, OutReadData2, OutImmExtended, OutRt, OutRd,
                       OutALUSrc, OutRegDst, OutRegWrite, OutALUOp, OutMemRead, OutMemWrite, OutMemToReg, OutBranch, OutHalf, OutShift,
                       OutJrSrc, OutJSrc);
@@ -24,6 +25,7 @@ module ID_EX_Register(Clk, InReadData1, InReadData2, InImmExtended, InRt, InRd,
     input [4:0] InRt, InRd;
     input [31:0] InPCAddResult;
     input [25:0] InInstruction25To0;
+    input InJump;
 
     output reg OutALUSrc, OutRegDst, OutRegWrite, OutMemRead, OutMemWrite, OutMemToReg, OutBranch, OutShift, OutJrSrc, OutJSrc;
     output reg [5:0] OutALUOp;
@@ -32,6 +34,7 @@ module ID_EX_Register(Clk, InReadData1, InReadData2, InImmExtended, InRt, InRd,
     output reg [4:0] OutRt, OutRd;
     output reg [31:0] OutPCAddResult;
     output reg [25:0] OutInstruction25To0;
+    output reg OutJump;
 
     initial begin
         OutALUSrc <= 0;
@@ -52,6 +55,7 @@ module ID_EX_Register(Clk, InReadData1, InReadData2, InImmExtended, InRt, InRd,
         OutRd <= 0;
         OutPCAddResult <= 0;
         OutInstruction25To0 <= 0;
+        OutJump <= 0;
     end
 
     always @(posedge Clk) begin
@@ -72,9 +76,7 @@ module ID_EX_Register(Clk, InReadData1, InReadData2, InImmExtended, InRt, InRd,
         OutRt <= InRt;
         OutRd <= InRd;
         OutPCAddResult <= InPCAddResult;
-        OutInstruction25To0 <= InInstruction25To0;        
+        OutInstruction25To0 <= InInstruction25To0;  
+        OutJump <= InJump;      
     end
 endmodule
-
-
-    
