@@ -7,11 +7,12 @@
 // Description - Present the control signals for the datapath so that it supports all the required instructions
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrite, MemToReg, branch, half, shift, jrSrc, jSrc /*PCSrc*/);
+module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrite, MemToReg, branch, half, shift, jrSrc, jSrc, ZeroExtend);
     input [31:0] Instruction;
     output reg ALUSrc, RegDst, RegWrite, MemRead, MemWrite, MemToReg, branch, shift, jrSrc, jSrc;
     output reg [5:0] ALUOp;
     output reg [1:0] half;
+    output reg ZeroExtend; // Added for Zero-extend cases
 
     initial begin
         ALUSrc <= 0;
@@ -26,7 +27,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
         shift <= 0;
         jrSrc <= 0;
         jSrc <= 0;
-        //PCSrc <= 0;
+        ZeroExtend <= 0;
     end
 
     always @(Instruction) begin
@@ -45,7 +46,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
             shift <= 0;
             jrSrc <= 0;
             jSrc <= 0;
-            //PCSrc <= 0;
+            ZeroExtend <= 0;
         end
 
         else begin
@@ -64,7 +65,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 0;
                     case (Instruction[5:0])
                         6'b100000: begin // add
                             ALUOp <= 6'b000000;
@@ -197,7 +198,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     half <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b000000;
                 end
 
@@ -213,7 +214,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     half <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b100000;
                 end
 
@@ -229,7 +230,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b000000;
                 end
 
@@ -245,7 +246,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b000000;
                 end
 
@@ -261,7 +262,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b000000;
                 end
 
@@ -277,7 +278,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b000000;
                 end
 
@@ -293,7 +294,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b000000;
                 end
 
@@ -309,7 +310,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b000000;
                 end
 
@@ -326,7 +327,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b000110;
                 end
 
@@ -342,6 +343,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
+                    ZeroExtend <= 0;
                     if (Instruction[20:16] == 5'b00001) begin // bgez
                         ALUOp <= 6'b000111;    
                     end
@@ -362,6 +364,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b001000;
                 end
 
@@ -377,6 +380,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b001001;
                 end
 
@@ -392,6 +396,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b001010;
                 end
 
@@ -407,6 +412,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b001011;
                 end
 
@@ -422,7 +428,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 1;
                     ALUOp <= 6'b001111;
                 end
 
@@ -438,7 +444,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 1;
                     ALUOp <= 6'b010000;
                 end
 
@@ -454,7 +460,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 1;
                     ALUOp <= 6'b010010;
                 end
 
@@ -470,7 +476,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b011011;
                 end
                 6'b001011: begin // sltiu
@@ -485,7 +491,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     shift <= 0;
                     jrSrc <= 0;
                     jSrc <= 0;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b100010;
                 end
 
@@ -502,7 +508,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                         shift <= 0;
                         jrSrc <= 0;
                         jSrc <= 0;
-                        //PCSrc <= 0;
+                        ZeroExtend <= 0;
                         ALUOp <= 6'b000010;
                     end
 
@@ -518,7 +524,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                         shift <= 0;
                         jrSrc <= 0;
                         jSrc <= 0;
-                        //PCSrc <= 0;
+                        ZeroExtend <= 0;
                         ALUOp <= 6'b000100;
                     end
 
@@ -534,7 +540,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                         half <= 0;
                         jrSrc <= 0;
                         jSrc <= 0;
-                        //PCSrc <= 0;
+                        ZeroExtend <= 0;
                         ALUOp <= 6'b000101;  
                     end
                 end
@@ -552,7 +558,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                         half <= 0;
                         jrSrc <= 0;
                         jSrc <= 0;
-                        //PCSrc <= 0;
+                        ZeroExtend <= 0;
                         ALUOp <= 6'b010011;  
                     end
                     else if (Instruction[10:6] == 10000) begin // seb
@@ -567,7 +573,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                         half <= 0;
                         jrSrc <= 0;
                         jSrc <= 0;
-                        //PCSrc <= 0;
+                        ZeroExtend <= 0;
                         ALUOp <= 6'b011010; 
                     end
                 end
@@ -584,7 +590,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     half <= 0;
                     jrSrc <= 1;
                     jSrc <= 1;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b001101;
                 end
 
@@ -600,7 +606,7 @@ module Controller(Instruction, ALUSrc, RegDst, RegWrite, ALUOp, MemRead, MemWrit
                     half <= 0;
                     jrSrc <= 1;
                     jSrc <= 1;
-                    //PCSrc <= 0;
+                    ZeroExtend <= 0;
                     ALUOp <= 6'b001101;
                  end
             endcase
